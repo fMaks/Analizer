@@ -1,2 +1,4 @@
-USDJPY.csv
-EURCHF.csv
+*.csv
+Analizer.code-workspace
+.vscode/
+
