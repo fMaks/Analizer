@@ -1,4 +1,6 @@
 *.csv
 Analizer.code-workspace
 .vscode/
+*.log
+mt5.py
 

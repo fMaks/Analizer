@@ -6,14 +6,15 @@ import pandas
 
 def FormBarFrame (TickTuple, TimeFrame):
     # формирует бары из тиков TickTuple заданного таймфрейма TimeFrame (секунды)
-    # Формат: Дата-время, Open, Close, Min, Max, движение цены внутри свечи
+    # Формат: Дата-время, Open, Close, Min, Max, Range (движение цены внутри свечи)
     # На выходе [0]-бар - самый последний по времени
     Bars = list ()
+    RangeBar = 0
+    RangeBarTmp = 0
+    Multiplier = 10**str.find(TickTuple[0][20:],".")
     for Tick in TickTuple:
         #ValueTick = int(Tick[20])*100000 + int(Tick[22])*10000 + int(Tick[23])*1000 + int(Tick[24])*100 + int(Tick[25])*10 + int(Tick[26])
         ValueTick = float(Tick[20:])
-        LenPrice = 0
-        LenPriceCount = 0
         t_struct = time.strptime(Tick[:19], "%Y.%m.%d %H:%M:%S")
         dt = datetime.datetime.fromtimestamp(time.mktime(t_struct))
 
@@ -25,19 +26,24 @@ def FormBarFrame (TickTuple, TimeFrame):
             # время соответсвует началу бара
             dt = datetime.datetime.fromtimestamp(dt.timestamp() - sec_ost)
             Bars.append([dt, ValueTick, ValueTick, ValueTick, ValueTick, 0])
-            
+            RangeBarTmp = int(ValueTick*Multiplier)
         else:
             if Bars[0][0].timestamp() + TimeFrame - 1 < dt.timestamp():
                 # для тика нужен новый бар
+                RangeBar = 0
                 secondstart = (dt.isoweekday() - 1) * 86400 + dt.hour * 3600 + dt.minute * 60 + dt.second
                 sec_ost = secondstart % TimeFrame
                 dt = datetime.datetime.fromtimestamp(dt.timestamp() - sec_ost)
                 Bars.insert(0, [dt, ValueTick, ValueTick, ValueTick, ValueTick, 0])
-                LenPriceCount = ValueTick
-        if ValueTick < Bars[0][2]:
-            Bars[0][2] = ValueTick
-        if ValueTick > Bars[0][3]:
-            Bars[0][3] = ValueTick
+                RangeBarTmp = int(ValueTick*Multiplier)
+            else:
+                RangeBar = RangeBar + abs(RangeBarTmp - int(ValueTick*Multiplier))
+                RangeBarTmp = int(ValueTick*Multiplier)
+                if ValueTick < Bars[0][2]:
+                    Bars[0][2] = ValueTick
+                if ValueTick > Bars[0][3]:
+                    Bars[0][3] = ValueTick
+                Bars[0][4] = RangeBar
     return Bars
 
 def main ():
@@ -50,9 +56,6 @@ def main ():
     
     TicksTuple = tuple(TicksFile.split('\n')[:-1])
     
-    second = list([TicksTuple[0]])
-    bars = ''
-
     Bars = (FormBarFrame(TicksTuple, 60))
 
     s = pandas.Series (x[1] for x in Bars)
