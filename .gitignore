@@ -4,4 +4,4 @@ Analizer.code-workspace
 *.log
 mt5.py
 *.bars
-
+Test/
