@@ -18,8 +18,8 @@ def FormBarFrame (TickTuple, TimeFrame):
     RangeBarTmp = 0
     # на сколько надо умножить цену, чтоб избавиться от "." и перевести в int
     Multiplier = 10**(len(TickTuple[0][20:]) - str.find(TickTuple[0][20:],".") - 1)
+    Valume = 1
     for Tick in TickTuple:
-        Valume = 0
         try:
             ValueTick = float(Tick[20:])
             t_struct = time.strptime(Tick[:19], "%Y.%m.%d %H:%M:%S")
@@ -32,7 +32,6 @@ def FormBarFrame (TickTuple, TimeFrame):
                 sec_ost = secondstart % TimeFrame
                 # время соответсвует началу бара
                 dt = datetime.datetime.fromtimestamp(dt.timestamp() - sec_ost)
-                Valume = 1
                 Bars.append([dt, ValueTick, ValueTick, ValueTick, ValueTick, 0, Valume])
                 RangeBarTmp = int(ValueTick*Multiplier)
             else:
@@ -42,7 +41,7 @@ def FormBarFrame (TickTuple, TimeFrame):
                     secondstart = (dt.isoweekday() - 1) * 86400 + dt.hour * 3600 + dt.minute * 60 + dt.second
                     sec_ost = secondstart % TimeFrame
                     dt = datetime.datetime.fromtimestamp(dt.timestamp() - sec_ost)
-                    Valume = Valume + 1
+                    Valume = 1
                     Bars.insert(0, [dt, ValueTick, ValueTick, ValueTick, ValueTick, 0, Valume])
                     RangeBarTmp = int(ValueTick*Multiplier)
                 else:
@@ -54,6 +53,8 @@ def FormBarFrame (TickTuple, TimeFrame):
                     RangeBar = RangeBar + abs(RangeBarTmp - int(ValueTick*Multiplier))
                     RangeBarTmp = int(ValueTick*Multiplier)
                     Bars[0][5] = RangeBar
+                    Valume = Valume + 1
+                    Bars[0][6] = Valume
         except:
             print("Except")
             pass
